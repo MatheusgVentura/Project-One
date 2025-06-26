@@ -1,13 +1,25 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from controller.controller import Controller
 from policy.policy import Policy
+from memory.pinecone_memory import PineconeMemory
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="API MCP - RAG com Memory, Controller, Policy")
+
+# Adicione este bloco ANTES de definir os endpoints
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Ou especifique ["http://localhost:5173"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Instancia as camadas MCP
 controller = Controller()
 policy = Policy()
+memory = PineconeMemory()
 
 class PerguntaRequest(BaseModel):
     pergunta: str
@@ -16,6 +28,44 @@ class PerguntaRequest(BaseModel):
 class RespostaMCP(BaseModel):
     answer: str
     sources: list
+
+@app.get("/")
+def home():
+    """
+    Página inicial da API MCP
+    """
+    return {
+        "message": "API MCP - RAG com Memory, Controller, Policy",
+        "version": "1.0.0",
+        "endpoints": {
+            "docs": "/docs",
+            "redoc": "/redoc", 
+            "api": "/mcp/ask"
+        },
+        "description": "Sistema de busca aumentada por geração com arquitetura MCP"
+    }
+
+@app.get("/contratos")
+def listar_contratos(skip: int = Query(0), limit: int = Query(10)):
+    """
+    Lista contratos indexados no Pinecone (mock simples para frontend funcionar)
+    """
+    documentos = memory.buscar_documentos("", top_k=limit)
+    return {
+        "resultados": documentos,
+        "total": len(documentos)
+    }
+
+@app.get("/contratos/busca")
+def buscar_contratos(q: str = Query(...), limit: int = Query(5)):
+    """
+    Busca contratos por texto usando Pinecone.
+    """
+    documentos = memory.buscar_documentos(q, top_k=limit)
+    return {
+        "resultados": documentos,
+        "total": len(documentos)
+    }
 
 @app.post("/mcp/ask", response_model=RespostaMCP)
 def mcp_ask(request: PerguntaRequest):

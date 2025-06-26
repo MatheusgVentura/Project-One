@@ -31,6 +31,7 @@ export interface LLMResponse {
   answer: string;
   sources: Array<{
     filename?: string;
+    text?: string;
     [key: string]: any;
   }>;
 }
@@ -68,10 +69,10 @@ export const contratoService = {
     return response.data.arquivos;
   },
 
-  // Perguntar ao LLM
+  // Perguntar ao LLM usando a API MCP
   askQuestion: async (question: string, maxResults = 3): Promise<LLMResponse> => {
     try {
-      console.log(`Chamando API: /llm/ask com pergunta: "${question}"`);
+      console.log(`Chamando API MCP: /mcp/ask com pergunta: "${question}"`);
       
       // Tratamento especial para garantir que a pergunta seja válida
       if (!question || question.trim() === '') {
@@ -81,29 +82,29 @@ export const contratoService = {
       // Limitar o tamanho da pergunta para evitar problemas
       const trimmedQuestion = question.trim().substring(0, 1000);
       
-      // Usar uma abordagem mais robusta com timeout maior para o LLM
-      const response = await api.post('/llm/ask', {
-        question: trimmedQuestion,
+      // Usar a API MCP com a estrutura correta
+      const response = await api.post('/mcp/ask', {
+        pergunta: trimmedQuestion,  // Mudança: 'question' -> 'pergunta'
         max_results: maxResults
       }, {
         timeout: 30000 // 30 segundos para dar tempo ao LLM processar
       });
       
-      console.log('Resposta do LLM recebida com sucesso');
+      console.log('Resposta da API MCP recebida com sucesso');
       return response.data;
     } catch (error: any) {
       // Tratamento de erro mais informativo
       if (error.response) {
         // O servidor respondeu com um status de erro
-        console.error(`Erro ${error.response.status} na chamada do LLM:`, error.response.data);
+        console.error(`Erro ${error.response.status} na chamada da API MCP:`, error.response.data);
         throw new Error(error.response.data.detail || 'Erro ao processar a pergunta');
       } else if (error.request) {
         // A requisição foi feita mas não houve resposta
-        console.error('Timeout ou erro de rede na chamada do LLM');
+        console.error('Timeout ou erro de rede na chamada da API MCP');
         throw new Error('Não foi possível obter resposta do servidor. Verifique sua conexão.');
       } else {
         // Erro na configuração da requisição
-        console.error('Erro na configuração da chamada do LLM:', error.message);
+        console.error('Erro na configuração da chamada da API MCP:', error.message);
         throw new Error('Erro ao preparar a consulta: ' + error.message);
       }
     }
