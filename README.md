@@ -100,8 +100,16 @@ pip install -r requirements.txt
   PINECONE_INDEX_NAME="brito-ai"
   GEMINI_API_KEY="SUA_CHAVE_GEMINI"
   ```
-
-### 5. Rode o Servidor da API
+### 5. Rodar o Back-End
+```bash
+uvicorn api_mcp:app --reload --host 0.0.0.0 --port 8000
+```
+### 6. Rodar o Front-End
+```bash
+cd frontend
+npm run dev
+```
+### 7. Rode o Servidor da API
 ```bash
 uvicorn api_mcp:app --reload
 ```
