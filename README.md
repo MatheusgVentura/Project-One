@@ -105,7 +105,7 @@ pip install -r requirements.txt
 ```bash
 uvicorn api_mcp:app --reload
 ```
-O servidor estará disponível em `http://127.0.0.1:8000`.
+O servidor estará disponível em `http://127.0.0.1:8000/docs`.
 
 ## Como Usar a API
 
